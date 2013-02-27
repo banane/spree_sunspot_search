@@ -33,9 +33,8 @@ module Spree
 
         curr_page = page || 1
 
-        @products = @products_scope.includes( :variants => {:option_values => :option_type}).where(:spree_variants =>
-                                                                                                       {:is_master =>
-                                                                                                            false}).page(curr_page).per(per_page)
+        @products = @products_scope.includes(:variants => {:option_values => :option_type}).where(:spree_variants =>{:is_master =>false}).page(curr_page).per(per_page)
+
       end
 
       def similar_products(product, *field_names)
