@@ -31,7 +31,7 @@ module Spree
           end
         end
 
-
+  
 
         @products = @products_scope.includes(:variants => {:option_values => :option_type}).where(:spree_variants =>{:is_master =>false})
 
@@ -72,7 +72,11 @@ module Spree
 
       def get_products_conditions_for(base_scope, query)
         @solr_search = ::Sunspot.new_search(Spree::Product) do |q|
-          q.keywords(query)
+          q.keywords(query) if query.present?
+
+          q.order_by(
+              ordering_property.flatten.first,
+              ordering_property.flatten.last)
 
           Setup.filters.filters.each do |filter|
             q.facet( filter.search_param )
@@ -101,10 +105,17 @@ module Spree
       def prepare(params)
         super
         @properties[:filters] = params[:s] || params['s'] || []
+        @properties[:order_by] = params[:order_by] || params['order_by'] || []
         @properties[:total_similar_products] = params[:total_similar_products].to_i > 0 ?
             params[:total_similar_products].to_i :
             Spree::Config[:total_similar_products]
       end
+
+      def ordering_property
+        @properties[:order_by] = @properties[:order_by].blank? ? %w(score desc) : @properties[:order_by].split(',')
+        @properties[:order_by].flatten
+      end
+
     end
   end
 end
